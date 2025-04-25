@@ -1,5 +1,8 @@
 **/.DS_Store
 
+# Removing the lock file as it's a generic template
+*.terraform.lock.hcl
+
 # Local .terraform directories
 **/.terraform/*
 
