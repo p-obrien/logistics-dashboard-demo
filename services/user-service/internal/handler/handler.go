@@ -5,13 +5,14 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/p-obrien/logistics-dashboard-demo/user-service/internal/service"
 )
 
 type UserHandler struct {
-	svc UserService
+	svc service.UserService
 }
 
-func NewUserHandler(svc UserService) *UserHandler {
+func NewUserHandler(svc service.UserService) *UserHandler {
 	return &UserHandler{svc}
 }
 
