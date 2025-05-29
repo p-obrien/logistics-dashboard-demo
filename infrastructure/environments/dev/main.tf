@@ -9,16 +9,26 @@ module "vpc" {
 
 }
 
-/*
+
 module "eks_cluster" {
   source = "../../modules/cluster"
 
-  cluster_name = "logistics-cluster"
-  vpc_id = module.vpc.vpc_id
+  cluster_name    = "logistics-cluster"
+  vpc_id          = module.vpc.vpc_id
   cluster_subnets = module.vpc.private_subnets
-  
+  cluster_version = 1.32
+  node_groups = {
+    "spot-pool-1" = {
+      instance_types = ["r6i.large"]
+      capacity_type  = "SPOT"
+      ami_type       = "BOTTLEROCKET_x86_64"
+      min_size       = 1
+      max_size       = 3
+      desired_size   = 2
+    }
+  }
 }
-*/
+
 
 /*
 module "database" {

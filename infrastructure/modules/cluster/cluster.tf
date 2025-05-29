@@ -4,7 +4,7 @@ module "eks" {
   version = "~> 20.11"
 
   cluster_name    = var.cluster_name
-  cluster_version = "1.32"
+  cluster_version = var.cluster_version
 
   enable_cluster_creator_admin_permissions = true
   cluster_endpoint_public_access           = true
@@ -27,15 +27,16 @@ module "eks" {
   subnet_ids = var.cluster_subnets
 
   eks_managed_node_groups = {
-    nodepool = {
-      instance_types = ["r6i.large"]
-      capacity_type  = "SPOT"
-      min_size       = 1
-      max_size       = 2
-      desired_size   = 1
-      ami_type       = "BOTTLEROCKET_x86_64"
-    }
+  for name, cfg in var.node_groups : name => {
+    instance_types = cfg.instance_types
+    capacity_type  = cfg.capacity_type
+    ami_type       = cfg.ami_type
+    min_size       = cfg.min_size
+    max_size       = cfg.max_size
+    desired_size   = cfg.desired_size
   }
+}
+
 }
 
 provider "kubernetes" {
