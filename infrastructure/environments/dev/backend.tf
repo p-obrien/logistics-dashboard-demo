@@ -1,10 +1,9 @@
-# environments/dev/backend.tf
-#terraform {
-  #backend "s3" {
-    #bucket         = "my-tofu-state"
-    #key            = "dev/app.tfstate"
-    #region         = "ap-southeast-2"
-    #dynamodb_table = "my-tofu-locks"
-    #encrypt        = true
-  #}
-#}
+terraform {
+  backend "s3" {
+    bucket         = "logistics-dashboard-demo-dev"
+    key            = "global/s3/terraform.tfstate"
+    region         = var.region
+    dynamodb_table = "terraform-lock"
+    encrypt        = true
+  }
+}

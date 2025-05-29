@@ -10,23 +10,30 @@ module "eks" {
   cluster_endpoint_public_access           = true
 
   cluster_addons = {
-    coredns                = {}
+    coredns                = {
+      most_recent = true
+    }
     eks-pod-identity-agent = {}
-    kube-proxy             = {}
-    vpc-cni                = {}
+    kube-proxy             = {
+      most_recent = true
+    }
+    vpc-cni                = {
+      most_recent = true
+      before_compute = true
+    }
   }
 
-  vpc_id     = module.vpc.vpc_id
-  subnet_ids = module.vpc.private_subnets
+  vpc_id     = var.vpc_id
+  subnet_ids = var.cluster_subnets
 
   eks_managed_node_groups = {
     nodepool = {
-      instance_types = ["r7a.large"]
+      instance_types = ["r6i.large"]
       capacity_type  = "SPOT"
       min_size       = 1
       max_size       = 2
       desired_size   = 1
-      ami_type       = "AL2023_x86_64_STANDARD"
+      ami_type       = "BOTTLEROCKET_x86_64"
     }
   }
 }
@@ -40,5 +47,3 @@ provider "kubernetes" {
 data "aws_eks_cluster_auth" "eks" {
   name = var.cluster_name
 }
-
-
