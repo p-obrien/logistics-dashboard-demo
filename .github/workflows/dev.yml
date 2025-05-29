@@ -31,6 +31,7 @@ jobs:
           tofu_version: v1.9.1
 
       - name: Generate tfvars file
+        working-directory: infrastructure/environments/dev
         run: |
           cat <<EOF > terraform.tfvars
           cluster_name    = "dev-webservices-cluster"
@@ -44,13 +45,17 @@ jobs:
           
       - name: OpenTofu Init
         run: tofu init
+        working-directory: infrastructure/environments/dev
 
       - name: OpenTofu Validate
         run: tofu validate
+        working-directory: infrastructure/environments/dev
 
       - name: OpenTofu Plan
         run: tofu plan -out=tfplan
+        working-directory: infrastructure/environments/dev
 
       - name: OpenTofu Apply
-        if: github.ref == 'refs/heads/main'
+        if: github.ref == 'refs/heads/dev'
         run: tofu apply -auto-approve tfplan
+        working-directory: infrastructure/environments/dev
