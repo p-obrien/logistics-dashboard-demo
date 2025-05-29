@@ -1,0 +1,44 @@
+name: Terraform Deploy
+
+on:
+  push:
+    branches:
+      - dev
+  workflow_dispatch:  # Manual trigger
+
+permissions:
+  id-token: write  # Required for OIDC
+  contents: read
+
+jobs:
+  opentofu:
+    name: Deploy with OpenTofu
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials via OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::<AWS_ACCOUNT_ID>:role/<ROLE_NAME>
+          aws-region: <AWS_REGION>  # e.g., ap-southeast-2
+
+      - name: Setup OpenTofu
+        uses: opentofu/setup-opentofu@v1
+        with:
+          tofu_version: 1.6.2  # Match the version you're using
+
+      - name: OpenTofu Init
+        run: tofu init
+
+      - name: OpenTofu Validate
+        run: tofu validate
+
+      - name: OpenTofu Plan
+        run: tofu plan -out=tfplan
+
+      - name: OpenTofu Apply
+        if: github.ref == 'refs/heads/main'
+        run: tofu apply -auto-approve tfplan
