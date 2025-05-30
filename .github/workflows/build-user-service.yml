@@ -2,10 +2,10 @@ name: Build and Push User Service
 
 on:
   push:
-    branches: [dev]
+    branches: 
+      - dev
     paths:
-      - 'user-service/**'
-      - '.github/workflows/build-and-push-user-service.yml'
+      - 'services/user-service/**'
 
 env:
   AWS_REGION: ap-southeast-2
