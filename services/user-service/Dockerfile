@@ -1,5 +1,5 @@
 # Stage 1 — build the binary
-FROM golang:1.22-alpine AS builder
+FROM golang:1.24-alpine AS builder
 
 WORKDIR /app
 
@@ -25,7 +25,7 @@ COPY --from=builder /app/user-service .
 RUN adduser -D -g '' appuser
 USER appuser
 
-# Expose port (optional, for documentation)
+
 EXPOSE 8080
 
 # Run the service
