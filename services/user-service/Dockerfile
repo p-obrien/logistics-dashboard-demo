@@ -9,7 +9,8 @@ COPY go.mod go.sum ./
 RUN go mod download
 
 COPY . .
-RUN CGO_ENABLED=0 GOOS=linux go build -o user-service main.go
+RUN CGO_ENABLED=0 GOOS=linux go build -o user-service .
+
 
 # Stage 2 — create a lightweight image
 FROM alpine:latest
