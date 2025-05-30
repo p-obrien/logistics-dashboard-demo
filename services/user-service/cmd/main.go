@@ -22,7 +22,7 @@ func main() {
 
 	dbpool, err := pgxpool.New(context.Background(), dbUrl)
 	if err != nil {
-		log.Fatalf("Failed to connect to DB: %v", err)
+		log.Fatalf("Failed to connect to Database: %v", err)
 	}
 	defer dbpool.Close()
 
