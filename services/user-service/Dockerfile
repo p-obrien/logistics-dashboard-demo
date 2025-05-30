@@ -25,4 +25,5 @@ USER appuser
 
 EXPOSE 8080
 
+
 ENTRYPOINT ["./user-service"]
