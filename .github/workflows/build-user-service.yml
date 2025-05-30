@@ -39,8 +39,8 @@ jobs:
         run: |
           ECR_REPOSITORY="${ECR_REPOSITORY#/}"  # strip leading slash 
           docker build -t $ECR_REPOSITORY:$TAG .
-          docker tag $ECR_REPOSITORY:$TAG ${{ steps.login-ecr.outputs.registry }}/$ECR_REPOSITORY:$TAG
-          docker tag $ECR_REPOSITORY:$TAG ${{ steps.login-ecr.outputs.registry }}/$ECR_REPOSITORY:latest
+          docker tag $ECR_REPOSITORY:$TAG ${{ steps.login-ecr.outputs.registry }}$ECR_REPOSITORY:$TAG
+          docker tag $ECR_REPOSITORY:$TAG ${{ steps.login-ecr.outputs.registry }}$ECR_REPOSITORY:latest
 
       - name: Push Docker Image to ECR
         run: |
