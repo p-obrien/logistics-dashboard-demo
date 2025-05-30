@@ -17,8 +17,6 @@ FROM alpine:latest
 WORKDIR /app
 
 RUN apk --no-cache add ca-certificates
-
-# Copy the binary from builder
 COPY --from=builder /app/user-service .
 
 # Use non-root user (optional but recommended)
