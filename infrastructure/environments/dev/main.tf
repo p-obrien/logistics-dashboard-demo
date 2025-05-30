@@ -10,6 +10,13 @@ module "vpc" {
 }
 
 
+module "user-service-repository" {
+  source  = "../../modules/ecr"
+  name = "user-service-dev"
+ # tags    = { environment = "dev", service = "user-service" } TODO Add tag support
+}
+
+/*
 module "eks_cluster" {
   source = "../../modules/cluster"
 
@@ -30,7 +37,7 @@ module "eks_cluster" {
 }
 
 
-/*
+
 module "database" {
   source = "../../modules/database"
 
@@ -42,10 +49,6 @@ module "database" {
   depends_on = [ module.vpc, aws_db_subnet_group.rds_subnet_group ]
 } */
 
-module "user-service" {
-  source = "../../modules/ecr_repo"
-  name   = "user-service"
-}
 
 ################################################################################
 # Supporting Resources
