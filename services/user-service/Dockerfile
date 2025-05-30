@@ -1,10 +1,32 @@
-# A comment to trigger a build
-FROM golang:1.24 AS build
+# Stage 1 — build the binary
+FROM golang:1.22-alpine AS builder
 
 WORKDIR /app
-COPY . .
-RUN go build -o user-service .
 
-FROM gcr.io/distroless/base-debian11
-COPY --from=build /app/user-service /user-service
-CMD ["/user-service"]
+RUN apk add --no-cache git ca-certificates
+
+COPY go.mod go.sum ./
+RUN go mod download
+
+COPY . .
+RUN CGO_ENABLED=0 GOOS=linux go build -o user-service main.go
+
+# Stage 2 — create a lightweight image
+FROM alpine:latest
+
+WORKDIR /app
+
+RUN apk --no-cache add ca-certificates
+
+# Copy the binary from builder
+COPY --from=builder /app/user-service .
+
+# Use non-root user (optional but recommended)
+RUN adduser -D -g '' appuser
+USER appuser
+
+# Expose port (optional, for documentation)
+EXPOSE 8080
+
+# Run the service
+ENTRYPOINT ["./user-service"]
