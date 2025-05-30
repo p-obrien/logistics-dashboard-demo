@@ -27,5 +27,4 @@ USER appuser
 
 EXPOSE 8080
 
-# Run the service
 ENTRYPOINT ["./user-service"]
