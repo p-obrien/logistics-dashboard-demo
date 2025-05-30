@@ -1,3 +1,4 @@
+# A comment to trigger a build
 FROM golang:1.24 AS build
 
 WORKDIR /app
