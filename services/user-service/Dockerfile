@@ -26,7 +26,6 @@ COPY --from=builder /app/user-service .
 RUN adduser -D -g '' appuser
 USER appuser
 
-
 EXPOSE 8080
 
 # Run the service
