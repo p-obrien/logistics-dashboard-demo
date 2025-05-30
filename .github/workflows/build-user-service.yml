@@ -43,7 +43,7 @@ jobs:
           TAG: ${{ github.sha }}
         run: |
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$TAG .
-          docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$TAG $ECR_REGISTRY$ECR_REPOSITORY:latest
+          docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$TAG $ECR_REGISTRY/$ECR_REPOSITORY:latest
 
       - name: Push Docker Image to ECR
         env:

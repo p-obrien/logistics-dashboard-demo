@@ -19,7 +19,7 @@ WORKDIR /app
 RUN apk --no-cache add ca-certificates
 COPY --from=builder /app/user-service .
 
-# Use non-root user
+# Non Root
 RUN adduser -D -g '' appuser
 USER appuser
 
