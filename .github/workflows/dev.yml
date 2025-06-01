@@ -24,7 +24,7 @@ jobs:
         if: github.event.pull_request.head.repo.full_name == github.repository || github.event_name != 'pull_request'
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::${{ env.DEV_AWS_ACCOUNT_ID }}:role/${{ env.GITHUBOIDCROLE }}
+          role-to-assume: arn:aws:iam::${{secrets.DEV_AWS_ACCOUNT_ID }}:role/${{ secrets.GITHUBOIDCROLE }}
           aws-region: ap-southeast-2
 
       - name: Setup OpenTofu
