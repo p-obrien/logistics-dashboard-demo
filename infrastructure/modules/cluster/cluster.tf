@@ -10,15 +10,17 @@ module "eks" {
   cluster_endpoint_public_access           = true
 
   cluster_addons = {
-    coredns                = {
+    coredns = {
       most_recent = true
     }
-    eks-pod-identity-agent = {}
-    kube-proxy             = {
+    eks-pod-identity-agent = {
+
+    }
+    kube-proxy = {
       most_recent = true
     }
-    vpc-cni                = {
-      most_recent = true
+    vpc-cni = {
+      most_recent    = true
       before_compute = true
     }
   }
@@ -27,15 +29,15 @@ module "eks" {
   subnet_ids = var.cluster_subnets
 
   eks_managed_node_groups = {
-  for name, cfg in var.node_groups : name => {
-    instance_types = cfg.instance_types
-    capacity_type  = cfg.capacity_type
-    ami_type       = cfg.ami_type
-    min_size       = cfg.min_size
-    max_size       = cfg.max_size
-    desired_size   = cfg.desired_size
+    for name, cfg in var.node_groups : name => {
+      instance_types = cfg.instance_types
+      capacity_type  = cfg.capacity_type
+      ami_type       = cfg.ami_type
+      min_size       = cfg.min_size
+      max_size       = cfg.max_size
+      desired_size   = cfg.desired_size
+    }
   }
-}
 
 }
 
