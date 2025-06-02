@@ -33,7 +33,7 @@ variable "azs" {
   type = list(string)
 }
 
-variable "eks-admin"{
+variable "eks_cluster_admin"{
   description = "ARN of user to be given EKS Cluster Admin"
   type = string
 }
