@@ -3,7 +3,7 @@ terraform {
     bucket         = "logistics-dashboard-demo-dev"
     key            = "global/s3/terraform.tfstate"
     region         = var.region
-    dynamodb_table = "terraform-lock"
+    dynamodb_table = "terraform-lock-dev"
     encrypt        = true
   }
 }
