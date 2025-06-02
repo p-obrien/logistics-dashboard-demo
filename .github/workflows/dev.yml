@@ -11,14 +11,14 @@ permissions:
   id-token: write
   contents: read
 
-concurrency:
-  group: terraform-${{ github.ref }}
-  cancel-in-progress: true
-
 jobs:
   opentofu:
     name: Deploy with OpenTofu
     runs-on: ubuntu-latest
+
+    concurrency:
+      group: terraform-${{ github.ref }}
+      cancel-in-progress: true
 
     steps:
       - name: Checkout code
