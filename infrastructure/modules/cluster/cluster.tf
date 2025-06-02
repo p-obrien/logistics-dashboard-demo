@@ -53,7 +53,6 @@ module "eks_aws_auth" {
       groups   = ["system:masters"]
     }
   ]
-
   
 }
 
