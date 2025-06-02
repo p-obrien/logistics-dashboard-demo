@@ -8,7 +8,6 @@ module "eks" {
 
   enable_cluster_creator_admin_permissions = true
   cluster_endpoint_public_access           = true
-
   cluster_addons = {
     coredns = {
       most_recent = true
@@ -39,6 +38,23 @@ module "eks" {
     }
   }
 
+}
+
+module "eks_aws_auth" {
+  source  = "terraform-aws-modules/eks/aws//modules/aws-auth"
+  version = "~> 20.11"
+
+  depends_on = [module.eks]  # ensure cluster is ready
+
+  aws_auth_users = [
+    {
+      userarn  = var.cluster_admin
+      username = regex("^arn:aws:iam::\\d+:user/(.*)$", var.cluster_admin)[0]
+      groups   = ["system:masters"]
+    }
+  ]
+
+  
 }
 
 provider "kubernetes" {

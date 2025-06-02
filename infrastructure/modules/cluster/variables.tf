@@ -23,6 +23,11 @@ variable "cluster_version" {
   }
 }
 
+variable "cluster_admin" {
+  type = string
+  description = "ARN of user to be given admin"
+}
+
 variable "node_groups" {
   type = map(object({
     instance_types = list(string)

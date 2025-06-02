@@ -24,6 +24,7 @@ module "eks_cluster" {
   vpc_id          = module.vpc.vpc_id
   cluster_subnets = module.vpc.private_subnets
   cluster_version = 1.32
+  cluster_admin = var.eks-admin
   node_groups = {
     "spot-pool-1" = {
       instance_types = ["r6i.large"]
