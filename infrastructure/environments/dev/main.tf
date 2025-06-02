@@ -16,7 +16,6 @@ module "user-service-repository" {
  # tags    = { environment = "dev", service = "user-service" } TODO Add tag support
 }
 
-
 module "eks_cluster" {
   source = "../../modules/cluster"
 
