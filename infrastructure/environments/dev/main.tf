@@ -37,7 +37,6 @@ module "eks_cluster" {
   }
 }
 
-
 /*
 module "database" {
   source = "../../modules/database"
