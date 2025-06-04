@@ -31,7 +31,7 @@ module "eks_cluster" {
       ami_type       = "BOTTLEROCKET_x86_64"
       min_size       = 1
       max_size       = 3
-      desired_size   = 2
+      desired_size   = 1
     }
   }
   tags = { environment = "dev", service = "user-service" }
