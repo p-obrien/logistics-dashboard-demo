@@ -53,3 +53,22 @@ jobs:
         run: |
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$TAG
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+
+      - name: Install Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: v3.14.4
+
+      - name: Set up kubeconfig for EKS
+        run: |
+          aws eks update-kubeconfig \
+            --region $AWS_REGION \
+            --name ${{ secrets.DEV_CLUSTER_NAME }}
+
+      - name: Deploy to EKS using Helm
+        run: |
+          helm upgrade --install $SERVICE_NAME ./charts/user-service \
+            --namespace default \
+            --create-namespace \
+            --set image.repository=${{ steps.login-ecr.outputs.registry }}/$ECR_REPOSITORY \
+            --set image.tag=$TAG
