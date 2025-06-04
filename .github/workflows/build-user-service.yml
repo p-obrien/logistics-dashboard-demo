@@ -63,7 +63,7 @@ jobs:
         run: |
           aws eks update-kubeconfig \
             --region $AWS_REGION \
-            --name ${{ secrets.DEV_CLUSTER_NAME }}
+            --name dev-webservices-cluster
 
       - name: Deploy to EKS using Helm
         run: |
