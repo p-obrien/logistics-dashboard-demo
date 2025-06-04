@@ -24,6 +24,7 @@ module "eks" {
     }
   }
 
+  tags = var.tags
   vpc_id     = var.vpc_id
   subnet_ids = var.cluster_subnets
 

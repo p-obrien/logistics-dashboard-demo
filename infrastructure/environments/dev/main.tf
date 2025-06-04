@@ -10,9 +10,9 @@ module "vpc" {
 }
 
 module "user-service-repository" {
-  source  = "../../modules/ecr"
-  name = "user-service-dev"
- # tags    = { environment = "dev", service = "user-service" } TODO Add tag support
+  source = "../../modules/ecr"
+  name   = "user-service-dev"
+  tags   = { environment = "dev", service = "user-service" }
 }
 
 
@@ -23,7 +23,7 @@ module "eks_cluster" {
   vpc_id          = module.vpc.vpc_id
   cluster_subnets = module.vpc.private_subnets
   cluster_version = 1.32
-  cluster_admin = var.eks_cluster_admin
+  cluster_admin   = var.eks_cluster_admin
   node_groups = {
     "spot-pool-1" = {
       instance_types = ["r6i.large"]
@@ -34,6 +34,7 @@ module "eks_cluster" {
       desired_size   = 2
     }
   }
+  tags = { environment = "dev", service = "user-service" }
 }
 
 /*
