@@ -14,6 +14,8 @@ import (
 	"github.com/p-obrien/logistics-dashboard-demo/user-service/internal/service"
 )
 
+// Initial code just to get a container up for testing
+
 func main() {
 	dbUrl := os.Getenv("DATABASE_URL")
 	if dbUrl == "" {
