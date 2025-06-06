@@ -65,3 +65,31 @@ jobs:
         if: github.ref == 'refs/heads/dev'
         run: tofu apply -auto-approve tfplan
         working-directory: infrastructure/environments/dev
+
+      - name: Add GitHub OIDC Role to aws-auth ConfigMap
+        run: |
+          ROLE_ARN="arn:aws:iam::${{ secrets.DEV_AWS_ACCOUNT_ID }}:role/${{ secrets.GITHUBOIDCROLE }}"
+          USERNAME="github-actions"
+          GROUPS="- system:masters"
+          
+          kubectl get configmap aws-auth -n kube-system -o yaml > aws-auth.yaml
+
+          if grep -q "$ROLE_ARN" aws-auth.yaml; then
+            echo "Role already exists in aws-auth, skipping patch."
+          else
+            echo "Appending role to aws-auth..."    
+            awk -v rolearn="$ROLE_ARN" -v username="$USERNAME" -v groups="$GROUPS" '
+            /mapRoles:/ {
+            print $0;
+            print "  - rolearn: " rolearn;
+            print "    username: " username;
+            print "    groups:";
+            print "    " groups;
+            next
+          }
+          { print $0 }
+          ' aws-auth.yaml > updated-aws-auth.yaml
+
+          # Apply updated ConfigMap
+          kubectl apply -f updated-aws-auth.yaml
+          fi
