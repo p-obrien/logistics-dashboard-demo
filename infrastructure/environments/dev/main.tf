@@ -19,7 +19,7 @@ module "user-service-repository" {
 module "eks_cluster" {
   source = "../../modules/cluster"
 
-  cluster_name    = "logistics-cluster"
+  cluster_name    = var.cluster_name
   vpc_id          = module.vpc.vpc_id
   cluster_subnets = module.vpc.private_subnets
   cluster_version = 1.32
