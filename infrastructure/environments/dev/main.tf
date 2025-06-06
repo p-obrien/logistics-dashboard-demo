@@ -37,6 +37,7 @@ module "eks_cluster" {
   tags = { environment = "dev", service = "user-service" }
 }
 
+
 /*
 module "database" {
   source = "../../modules/database"
