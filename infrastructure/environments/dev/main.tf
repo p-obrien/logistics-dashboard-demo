@@ -26,7 +26,7 @@ module "eks_cluster" {
   cluster_admin   = var.eks_cluster_admin
   node_groups = {
     "spot-pool-1" = {
-      instance_types = ["r6i.large"]
+      instance_types = ["r6i.large", "r7i.large"]
       capacity_type  = "SPOT"
       ami_type       = "BOTTLEROCKET_x86_64"
       min_size       = 1
