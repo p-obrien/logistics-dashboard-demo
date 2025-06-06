@@ -66,30 +66,56 @@ jobs:
         run: tofu apply -auto-approve tfplan
         working-directory: infrastructure/environments/dev
 
+      - name: Configure kubectl for EKS cluster
+        if: github.ref == 'refs/heads/dev'
+        run: |
+          aws eks update-kubeconfig --region ap-southeast-2 --name dev-webservices-cluster
+          
+      - name: Wait for EKS cluster to be ready
+        if: github.ref == 'refs/heads/dev'
+        run: |
+          echo "Waiting for EKS cluster to be ready..."
+          kubectl wait --for=condition=Ready nodes --all --timeout=300s || echo "Timeout waiting for nodes, continuing..."
+          
       - name: Add GitHub OIDC Role to aws-auth ConfigMap
+        if: github.ref == 'refs/heads/dev'
         run: |
           ROLE_ARN="arn:aws:iam::${{ secrets.DEV_AWS_ACCOUNT_ID }}:role/${{ secrets.GITHUBOIDCROLE }}"
           USERNAME="github-actions"
-          GROUPS="- system:masters"
           
+          echo "Configuring aws-auth ConfigMap..."
+          
+          # Check if aws-auth ConfigMap exists
+          if ! kubectl get configmap aws-auth -n kube-system >/dev/null 2>&1; then
+            echo "aws-auth ConfigMap doesn't exist, creating it..."
+            kubectl create configmap aws-auth -n kube-system --from-literal=mapRoles="[]"
+          fi
+          
+          # Get current aws-auth ConfigMap
           kubectl get configmap aws-auth -n kube-system -o yaml > aws-auth.yaml
-
+          
+          # Check if role already exists
           if grep -q "$ROLE_ARN" aws-auth.yaml; then
-            echo "Role already exists in aws-auth, skipping patch."
+            echo "Role already exists in aws-auth, skipping update."
           else
-            echo "Appending role to aws-auth..."    
-            awk -v rolearn="$ROLE_ARN" -v username="$USERNAME" -v groups="$GROUPS" '
-            /mapRoles:/ {
-            print $0;
-            print "  - rolearn: " rolearn;
-            print "    username: " username;
-            print "    groups:";
-            print "    " groups;
-            next
-          }
-          { print $0 }
-          ' aws-auth.yaml > updated-aws-auth.yaml
-
-          # Apply updated ConfigMap
-          kubectl apply -f updated-aws-auth.yaml
+            echo "Adding GitHub OIDC role to aws-auth ConfigMap..."
+            
+            # Extract current mapRoles data
+            kubectl get configmap aws-auth -n kube-system -o jsonpath='{.data.mapRoles}' > current-roles.yaml
+            
+            # Append the new role
+            echo "  - rolearn: $ROLE_ARN" >> current-roles.yaml
+            echo "    username: $USERNAME" >> current-roles.yaml
+            echo "    groups:" >> current-roles.yaml
+            echo "    - system:masters" >> current-roles.yaml
+            
+            # Update the ConfigMap
+            kubectl patch configmap aws-auth -n kube-system --patch "$(cat <<EOF
+          data:
+            mapRoles: |
+          $(cat current-roles.yaml | sed 's/^/      /')
+          EOF
+          )"
+            
+            echo "Successfully updated aws-auth ConfigMap"
           fi
