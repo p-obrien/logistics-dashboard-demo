@@ -44,3 +44,32 @@ variable "tags" {
   type        = map(string)
   default     = {}
 }
+
+# Pod Identity Variables
+variable "environment" {
+  description = "Environment name (e.g., dev, staging, prod)"
+  type        = string
+  default     = "dev"
+}
+
+variable "database_secret_arn" {
+  description = "ARN of the Secrets Manager secret containing database credentials"
+  type        = string
+}
+
+variable "database_cluster_identifier" {
+  description = "RDS cluster identifier for IAM database authentication"
+  type        = string
+}
+
+variable "service_namespace" {
+  description = "Kubernetes namespace for the service"
+  type        = string
+  default     = "default"
+}
+
+variable "service_account_name" {
+  description = "Kubernetes service account name for the microservice"
+  type        = string
+  default     = "microservice-sa"
+}

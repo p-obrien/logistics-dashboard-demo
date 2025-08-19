@@ -17,7 +17,7 @@ module "user-service-repository" {
 
 
 module "eks_cluster" {
-  source = "../../modules/cluster"
+  source = "../../modules/eks"
 
   cluster_name    = var.cluster_name
   vpc_id          = module.vpc.vpc_id
@@ -26,7 +26,7 @@ module "eks_cluster" {
   cluster_admin   = var.eks_cluster_admin
   node_groups = {
     "spot-pool-1" = {
-      instance_types = ["r6i.large", "r7i.large"]
+      instance_types = ["r6i.large"]
       capacity_type  = "SPOT"
       ami_type       = "BOTTLEROCKET_x86_64"
       min_size       = 1
@@ -34,21 +34,30 @@ module "eks_cluster" {
       desired_size   = 1
     }
   }
+  
+  # Pod Identity configuration
+  environment                   = "dev"
+  database_secret_arn          = module.database.secrets_manager_secret_arn
+  database_cluster_identifier  = module.database.cluster_identifier
+  service_namespace            = "default"
+  service_account_name         = "user-service-sa"
+  
   tags = { environment = "dev", service = "user-service" }
+  
+  #depends_on = [module.database]
 }
 
 
-/*
 module "database" {
-  source = "../../modules/database"
+  source = "../../modules/database/transactional"
 
-  db_name               = "microservice-db"
-  db_subnet_group_ids   = [aws_db_subnet_group.rds_subnet_group.name]
+  db_name               = "logistics-db"
+  db_subnet_group_ids   = module.vpc.private_subnets
   db_security_group_ids = aws_security_group.rds_security_group.id
   db_subnet_group_name  = aws_db_subnet_group.rds_subnet_group.name
 
-  depends_on = [ module.vpc, aws_db_subnet_group.rds_subnet_group ]
-} */
+  depends_on = [module.vpc, aws_db_subnet_group.rds_subnet_group]
+}
 
 
 ################################################################################
