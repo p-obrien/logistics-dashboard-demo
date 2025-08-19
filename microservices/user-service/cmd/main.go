@@ -14,6 +14,8 @@ import (
 	"github.com/p-obrien/logistics-dashboard-demo/user-service/internal/service"
 )
 
+// Initial code just to get a container up for testing
+
 func main() {
 	dbUrl := os.Getenv("DATABASE_URL")
 	if dbUrl == "" {
@@ -22,7 +24,7 @@ func main() {
 
 	dbpool, err := pgxpool.New(context.Background(), dbUrl)
 	if err != nil {
-		log.Fatalf("Failed to connect to DB: %v", err)
+		log.Fatalf("Failed to connect to Database: %v", err)
 	}
 	defer dbpool.Close()
 

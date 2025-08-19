@@ -1,15 +1,12 @@
-variable "name" {}
-variable "enable_lifecycle_policy" {
-  type    = bool
-  default = true
-}
-
 resource "aws_ecr_repository" "this" {
   name                 = var.name
-  image_tag_mutability = "MUTABLE"
+  image_tag_mutability = "IMMUTABLE"
   image_scanning_configuration {
     scan_on_push = true
   }
+
+  tags = var.tags
+
   lifecycle {
     prevent_destroy = false
   }
@@ -23,18 +20,14 @@ resource "aws_ecr_lifecycle_policy" "default" {
   policy = jsonencode({
     rules = [{
       rulePriority = 1
-      description  = "Expire untagged >30d"
+      description  = "Expire untagged >14d"
       selection = {
         tagStatus     = "untagged"
         countType     = "sinceImagePushed"
         countUnit     = "days"
-        countNumber   = 30
+        countNumber   = 14
       }
       action = { type = "expire" }
     }]
   })
-}
-
-output "repository_url" {
-  value = aws_ecr_repository.this.repository_url
 }

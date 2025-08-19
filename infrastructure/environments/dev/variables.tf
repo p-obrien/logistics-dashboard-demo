@@ -32,3 +32,8 @@ variable "azs" {
   description = "Availability Zones to use"
   type = list(string)
 }
+
+variable "eks_cluster_admin"{
+  description = "ARN of user to be given EKS Cluster Admin"
+  type = string
+}

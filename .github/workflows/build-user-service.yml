@@ -1,0 +1,74 @@
+name: Build and Push User Service
+
+on:
+  push:
+    branches: 
+      - dev
+    paths:
+      - 'services/user-service/**'
+
+env:
+  AWS_REGION: ap-southeast-2
+  ECR_REPOSITORY: user-service-dev
+  SERVICE_NAME: user-service
+  TAG: ${{ github.sha }}
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{secrets.DEV_AWS_ACCOUNT_ID }}:role/${{ secrets.GITHUBOIDCROLE }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build Docker Image
+        working-directory: ./services/user-service
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: user-service-dev
+          TAG: ${{ github.sha }}
+        run: |
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$TAG .
+          docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$TAG $ECR_REGISTRY/$ECR_REPOSITORY:latest
+
+      - name: Push Docker Image to ECR
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: user-service-dev
+          TAG: ${{ github.sha }}
+        run: |
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$TAG
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+
+      - name: Install Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: v3.14.4
+
+      - name: Set up kubeconfig for EKS
+        run: |
+          aws eks update-kubeconfig \
+            --region $AWS_REGION \
+            --name dev-webservices-cluster
+
+      - name: Deploy to EKS using Helm
+        run: |
+          helm upgrade --install $SERVICE_NAME ./charts/user-service \
+            --namespace default \
+            --create-namespace \
+            --set image.repository=${{ steps.login-ecr.outputs.registry }}/$ECR_REPOSITORY \
+            --set image.tag=$TAG

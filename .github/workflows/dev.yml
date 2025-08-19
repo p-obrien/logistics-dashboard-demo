@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - dev
+    paths:
+      - 'infrastructure/**'
+  workflow_dispatch:
 
 permissions:
   id-token: write
@@ -14,6 +17,10 @@ jobs:
     name: Deploy with OpenTofu
     runs-on: ubuntu-latest
 
+    concurrency:
+      group: terraform-${{ github.ref }}
+      cancel-in-progress: true
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -22,7 +29,7 @@ jobs:
         if: github.event.pull_request.head.repo.full_name == github.repository || github.event_name != 'pull_request'
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::097324129341:role/github-actions-deploy
+          role-to-assume: arn:aws:iam::${{secrets.DEV_AWS_ACCOUNT_ID }}:role/${{ secrets.GITHUBOIDCROLE }}
           aws-region: ap-southeast-2
 
       - name: Setup OpenTofu
@@ -31,6 +38,7 @@ jobs:
           tofu_version: v1.9.1
 
       - name: Generate tfvars file
+        working-directory: infrastructure/environments/dev
         run: |
           cat <<EOF > terraform.tfvars
           cluster_name    = "dev-webservices-cluster"
@@ -40,17 +48,75 @@ jobs:
           azs             = ["ap-southeast-2a", "ap-southeast-2b"]
           private_subnets = ["10.0.1.0/24", "10.0.2.0/24"]
           public_subnets  = ["10.0.101.0/24", "10.0.102.0/24"]
+          eks_cluster_admin = "${{ secrets.DEV_EKS_CLUSTER_ADMIN }}"
           EOF
-          
       - name: OpenTofu Init
         run: tofu init
+        working-directory: infrastructure/environments/dev
 
       - name: OpenTofu Validate
         run: tofu validate
+        working-directory: infrastructure/environments/dev
 
       - name: OpenTofu Plan
         run: tofu plan -out=tfplan
+        working-directory: infrastructure/environments/dev
 
       - name: OpenTofu Apply
-        if: github.ref == 'refs/heads/main'
+        if: github.ref == 'refs/heads/dev'
         run: tofu apply -auto-approve tfplan
+        working-directory: infrastructure/environments/dev
+
+      - name: Configure kubectl for EKS cluster
+        if: github.ref == 'refs/heads/dev'
+        run: |
+          aws eks update-kubeconfig --region ap-southeast-2 --name dev-webservices-cluster
+          
+      - name: Wait for EKS cluster to be ready
+        if: github.ref == 'refs/heads/dev'
+        run: |
+          echo "Waiting for EKS cluster to be ready..."
+          kubectl wait --for=condition=Ready nodes --all --timeout=300s || echo "Timeout waiting for nodes, continuing..."
+          
+      - name: Add GitHub OIDC Role to aws-auth ConfigMap
+        if: github.ref == 'refs/heads/dev'
+        run: |
+          ROLE_ARN="arn:aws:iam::${{ secrets.DEV_AWS_ACCOUNT_ID }}:role/${{ secrets.GITHUBOIDCROLE }}"
+          USERNAME="github-actions"
+          
+          echo "Configuring aws-auth ConfigMap..."
+          
+          # Check if aws-auth ConfigMap exists
+          if ! kubectl get configmap aws-auth -n kube-system >/dev/null 2>&1; then
+            echo "aws-auth ConfigMap doesn't exist, creating it..."
+            kubectl create configmap aws-auth -n kube-system --from-literal=mapRoles="[]"
+          fi
+          
+          # Get current aws-auth ConfigMap
+          kubectl get configmap aws-auth -n kube-system -o yaml > aws-auth.yaml
+          
+          # Check if role already exists
+          if grep -q "$ROLE_ARN" aws-auth.yaml; then
+            echo "Role already exists in aws-auth, skipping update."
+          else
+            echo "Adding GitHub OIDC role to aws-auth ConfigMap..."
+            
+            # Extract current mapRoles data
+            kubectl get configmap aws-auth -n kube-system -o jsonpath='{.data.mapRoles}' > current-roles.yaml
+            
+            # Append the new role
+            echo "  - rolearn: $ROLE_ARN" >> current-roles.yaml
+            echo "    username: $USERNAME" >> current-roles.yaml
+            echo "    groups:" >> current-roles.yaml
+            echo "    - system:masters" >> current-roles.yaml
+            
+            # Update the ConfigMap
+            kubectl patch configmap aws-auth -n kube-system --patch "$(cat <<EOF
+          data:
+            mapRoles: |
+          $(cat current-roles.yaml | sed 's/^/      /')
+          EOF
+          )"
+            
+            echo "Successfully updated aws-auth ConfigMap"
+          fi
